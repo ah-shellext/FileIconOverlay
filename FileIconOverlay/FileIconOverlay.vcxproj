@@ -216,11 +216,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="FileIconOverlayImpl.h" />
     <ClInclude Include="FileIconOverlay_i.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -238,6 +240,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="FileIconOverlay.cpp" />
+    <ClCompile Include="FileIconOverlayImpl.cpp" />
     <ClCompile Include="FileIconOverlay_i.c">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
@@ -265,6 +268,7 @@
   <ItemGroup>
     <None Include="FileIconOverlay.def" />
     <None Include="FileIconOverlay.rgs" />
+    <None Include="FileIconOverlayImpl.rgs" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="FileIconOverlay.idl" />

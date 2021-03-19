@@ -1,0 +1,16 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove {7303bbe2-c455-4935-b902-b8095f2738fa} = s 'FileIconOverlayImpl class'
+		{
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			TypeLib = s '{61982caa-30fc-4f28-9ba1-84ccb7ddd71d}'
+			Version = s '1.0'
+		}
+	}
+}

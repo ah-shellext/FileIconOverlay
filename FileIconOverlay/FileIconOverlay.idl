@@ -8,11 +8,29 @@ import "oaidl.idl";
 import "ocidl.idl";
 
 [
+	object,
+	uuid(2ad0fdc0-cedf-450f-a464-2d1d1594dd44),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IFileIconOverlayImpl : IDispatch
+{
+};
+[
 	uuid(61982caa-30fc-4f28-9ba1-84ccb7ddd71d),
 	version(1.0),
 ]
 library FileIconOverlayLib
 {
 	importlib("stdole2.tlb");
+	[
+		uuid(7303bbe2-c455-4935-b902-b8095f2738fa)
+	]
+	coclass FileIconOverlayImpl
+	{
+		[default] interface IFileIconOverlayImpl;
+	};
 };
 
+import "shobjidl.idl";
