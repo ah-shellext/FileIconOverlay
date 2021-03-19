@@ -1,0 +1,32 @@
+### Editor ###
+.vscode/
+.ionide/
+.history/
+.idea/
+.vs/
+
+### Project ###
+ipch/
+*.suo
+*.user
+*.opensdf
+*.sdf
+*.rdb
+
+### Generate ###
+*.aps
+*_i.c
+*_i.h
+*_p.c
+dlldata.c
+
+### Build ###
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Xx]86/
+[Xx]64/
+[Ww]in32/
+[Ww]in64/
