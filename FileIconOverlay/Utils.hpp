@@ -7,67 +7,34 @@ class Utils {
 public:
 
     /**
-     * @breif Represent the max register key length.
-     */
-    static const UINT MAX_REG_KEY_LENGTH = 2048;
-
-    /**
-     * @breif Represent the max register string value length.
-     */
-    static const UINT MAX_REG_SZ_LENGTH = 2048;
-
-    /**
      * @brief Get overlay icon path from registry.
      */
     static bool GetOverlayIconPath(std::wstring *out) {
-        // get key
-        std::wstring reg_path = L"SOFTWARE\\AoiHosizora\\FileIconOverlay";
-        HKEY root_key;
-        if (RegOpenKeyEx(HKEY_CURRENT_USER, reg_path.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &root_key) != ERROR_SUCCESS) {
+        std::wstring res;
+        if (!ReadRegistryKeySzValue(L"SOFTWARE\\AoiHosizora\\FileIconOverlay", L"Icon", &res)) {
             return false;
         }
 
-        // get icon value
-        WCHAR buf[MAX_REG_SZ_LENGTH];
-        DWORD buf_size = sizeof(buf) / sizeof(buf[0]);
-        if (RegQueryValueEx(root_key, L"Icon", nullptr, nullptr, (LPBYTE) buf, &buf_size) != ERROR_SUCCESS) {
+        res = TrimWstring(res, { L' ', L'"' });
+        if (res.empty()) {
             return false;
         }
-        RegCloseKey(root_key);
-
-        // check icon value
-        std::wstring path = buf;
-        path = TrimWstring(path, { L' ', L'"' });
-        if (path.empty()) {
-            return false;
-        }
-
-        // set return value
-        *out = path;
+        *out = res;
         return true;
     }
 
+    /**
+     * @brief Get overlay priority path from registry.
+     */
     static bool GetOverlayIconPriority(int *out) {
-        // get key
-        std::wstring reg_path = L"SOFTWARE\\AoiHosizora\\FileIconOverlay";
-        HKEY root_key;
-        if (RegOpenKeyEx(HKEY_CURRENT_USER, reg_path.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &root_key) != ERROR_SUCCESS) {
+        std::wstring res;
+        if (!ReadRegistryKeySzValue(L"SOFTWARE\\AoiHosizora\\FileIconOverlay", L"Priority", &res)) {
             return false;
         }
 
-        // get priority value
-        WCHAR buf[MAX_REG_SZ_LENGTH];
-        DWORD buf_size = sizeof(buf) / sizeof(buf[0]);
-        if (RegQueryValueEx(root_key, L"Priority", nullptr, nullptr, (LPBYTE) buf, &buf_size) != ERROR_SUCCESS) {
-            return false;
-        }
-        RegCloseKey(root_key);
-
-        // check priority value
-        std::wstring priority_str = buf;
         int priority = 0;
         try {
-            priority = std::stoi(priority_str);
+            priority = std::stoi(res);
         } catch (...) { }
         if (priority < 0) {
             priority = 0;
@@ -75,7 +42,6 @@ public:
             priority = 100;
         }
 
-        // set return value
         *out = priority;
         return true;
     }
@@ -84,33 +50,75 @@ public:
      * @brief Get file paths which is need overlay icon.
      */
     static bool GetNeedOverlayFilePaths(std::vector<std::wstring> *out) {
-        // get key
-        std::wstring reg_path = L"SOFTWARE\\AoiHosizora\\FileIconOverlay\\Files";
-        HKEY reg_key;
-        if (RegOpenKeyEx(HKEY_CURRENT_USER, reg_path.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &reg_key) != ERROR_SUCCESS) {
+        std::vector<std::wstring> names = {};
+        if (!EnumRegistryKeyNames(L"SOFTWARE\\AoiHosizora\\FileIconOverlay\\Files", &names)) {
             return false;
         }
 
-        // get sub keys
         *out = {};
-        int index = 0;
-        WCHAR buf[MAX_REG_KEY_LENGTH];
-        DWORD buf_size = sizeof(buf) / sizeof(buf[0]);
-        while (RegEnumValue(reg_key, index, buf, &buf_size, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
-            index++;
-            buf_size = sizeof(buf) / sizeof(buf[0]);
-
-            // check path
-            std::wstring path = buf;
-            path = TrimWstring(path, { L' ', L'"' });
-            out->push_back(path);
+        for (auto name : names) {
+            auto path = TrimWstring(name, { L' ', L'"' });
+            if (!path.empty()) {
+                out->push_back(path);
+            }
         }
-        RegCloseKey(reg_key);
-
         return true;
     }
 
 private:
+
+    /**
+     * @breif Represent the max register string value length.
+     */
+    static const UINT MAX_REG_SZ_LENGTH = 2048;
+
+    /**
+     * @breif Represent the max register name length.
+     */
+    static const UINT MAX_REG_NAME_LENGTH = 2048;
+
+    /**
+     * @brief Read string value from given key path and value name.
+     */
+    static bool ReadRegistryKeySzValue(const std::wstring &key_path, const std::wstring &value_name, std::wstring *out) {
+        HKEY key;
+        if (RegOpenKeyEx(HKEY_CURRENT_USER, key_path.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
+            return false;
+        }
+
+        WCHAR buf[MAX_REG_SZ_LENGTH];
+        DWORD buf_size = sizeof(buf) / sizeof(buf[0]);
+        if (RegQueryValueEx(key, value_name.c_str(), nullptr, nullptr, (LPBYTE) buf, &buf_size) != ERROR_SUCCESS) {
+            return false;
+        }
+        RegCloseKey(key);
+
+        *out = buf;
+        return true;
+    }
+
+    /**
+     * @brief Enum registry key all names.
+     */
+    static bool EnumRegistryKeyNames(const std::wstring &key_path, std::vector<std::wstring> *out) {
+        HKEY key;
+        if (RegOpenKeyEx(HKEY_CURRENT_USER, key_path.c_str(), 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
+            return false;
+        }
+
+        *out = {};
+        int index = 0;
+        WCHAR buf[MAX_REG_NAME_LENGTH];
+        DWORD buf_size = sizeof(buf) / sizeof(buf[0]);
+        while (RegEnumValue(key, index, buf, &buf_size, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
+            index++;
+            buf_size = sizeof(buf) / sizeof(buf[0]);
+            out->push_back(buf);
+        }
+        RegCloseKey(key);
+
+        return true;
+    }
 
     /**
      * @brief Trim the given wstring using given chars.

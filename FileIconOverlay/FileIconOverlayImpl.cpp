@@ -20,8 +20,9 @@ HRESULT STDMETHODCALLTYPE CFileIconOverlayImpl::GetOverlayInfo(
         return S_FALSE;
     }
 
-    lstrcpyW(pwszIconFile, icon_path.c_str());
+   lstrcpy(pwszIconFile, icon_path.c_str());
     *pdwFlags = ISIOI_ICONFILE;
+    *pIndex = 0;
 
     return S_OK;
 }
@@ -37,7 +38,7 @@ HRESULT STDMETHODCALLTYPE CFileIconOverlayImpl::GetPriority(
     bool ok = Utils::GetOverlayIconPriority(&priority);
     if (!ok) {
         *pPriority = 100;
-        return S_OK;
+        return S_FALSE;
     }
 
     *pPriority = priority; // 0 (highest) - 100 (lowest)
