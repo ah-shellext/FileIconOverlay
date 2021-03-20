@@ -14,7 +14,13 @@ HRESULT STDMETHODCALLTYPE CFileIconOverlayImpl::GetOverlayInfo(
         return E_INVALIDARG;
     }
 
-    lstrcpy(pwszIconFile, L"E:\\Icon.ico");
+    std::wstring icon_path;
+    bool ok = Utils::GetOverlayIconPath(&icon_path);
+    if (!ok) {
+        return S_FALSE;
+    }
+
+    lstrcpyW(pwszIconFile, icon_path.c_str());
     *pdwFlags = ISIOI_ICONFILE;
 
     return S_OK;
@@ -26,7 +32,15 @@ HRESULT STDMETHODCALLTYPE CFileIconOverlayImpl::GetPriority(
     if (pPriority == nullptr) {
         return E_POINTER;
     }
-    *pPriority = 0; // 0 (highest) - 100 (lowest)
+
+    int priority;
+    bool ok = Utils::GetOverlayIconPriority(&priority);
+    if (!ok) {
+        *pPriority = 100;
+        return S_OK;
+    }
+
+    *pPriority = priority; // 0 (highest) - 100 (lowest)
     return S_OK;
 }
 
@@ -34,8 +48,15 @@ HRESULT STDMETHODCALLTYPE CFileIconOverlayImpl::IsMemberOf(
     __RPC__in_string LPCWSTR pwszPath,
     DWORD dwAttrib
 ) {
-    if (std::wcscmp(pwszPath, L"E:\\School") == 0) {
-        return S_OK;
+    std::vector<std::wstring> paths = {};
+    auto ok = Utils::GetNeedOverlayFilePaths(&paths);
+    if (!ok) {
+        return S_FALSE;
+    }
+    for (auto path : paths) {
+        if (std::wcscmp(pwszPath, path.c_str()) == 0) {
+            return S_OK;
+        }
     }
     return S_FALSE;
 }
